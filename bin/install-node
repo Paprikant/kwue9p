@@ -1,0 +1,29 @@
+#!/bin/bash
+
+function agent {
+    echo "Installing files"
+    [ -f /usr/bin/consul ] && rm /usr/bin/consul
+    cp -a bin/consul /usr/bin/consul
+    cp -a configs/consul-agent.service /etc/systemd/system/
+    cp -a configs/consul-env /etc/consul-env
+}
+
+function makeenv {
+    echo "provide a node address of an existing cluster below"
+    read node 
+    ip=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+    name=$(hostname)
+    echo "Generating configs/consul-env"
+    printf "HOST_NAME=$name \nHOST_IP=$ip \nJOIN_NODE=$node" > configs/consul-env 
+}
+
+case $1 in 
+    agent)
+	makeenv
+        agent
+        ;;
+     *)
+        echo 'Specify server or agent as $1'
+        ;;
+esac
+

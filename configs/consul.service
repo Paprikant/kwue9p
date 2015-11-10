@@ -1,0 +1,13 @@
+[Unit]
+Description=consul node
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+EnvironmentFile=/etc/consul-env
+Environment=GOMAXPROCS=2
+
+ExecStart=/usr/bin/consul agent -server -data-dir /tmp/consul -node $HOST_NAME -bind $HOST_IP -client 0.0.0.0 -join $JOIN_NODE
+
+KillSignal=SIGINT
+

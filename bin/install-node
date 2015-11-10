@@ -30,11 +30,11 @@ function makeenv {
 }
 
 case $1 in 
-    agent)
+    follow)
 	makeenv
         follow
         ;;
-    server)
+    first)
         makeenv
         first
         ;;

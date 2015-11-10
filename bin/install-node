@@ -19,7 +19,7 @@ function first {
 function makeenv {
     ip=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
     name=$(hostname)
-    if [ "$1" = "agent" ]; then
+    if [ "$1" = "follow" ]; then
         echo "provide a node address of an existing cluster below"
         read node
 	printf "HOST_NAME=$name \nHOST_IP=$ip \nJOIN_NODE=$node" > configs/consul-env
@@ -31,7 +31,7 @@ function makeenv {
 
 case $1 in 
     follow)
-	makeenv
+	makeenv $1
         follow
         ;;
     first)

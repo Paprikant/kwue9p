@@ -1,18 +1,18 @@
 #!/bin/bash
 
-function agent {
+function follow {
     echo "Installing files"
     [ -f /usr/bin/consul ] && rm /usr/bin/consul
     cp -a bin/consul /usr/bin/consul
-    cp -a configs/consul-agent.service /etc/systemd/system/
+    cp -a configs/consul.service /etc/systemd/system/
     cp -a configs/consul-env /etc/consul-env
 }
 
-function server {
+function first {
     echo "Installing files"
     [ -f /usr/bin/consul ] && rm /usr/bin/consul
     cp -a bin/consul /usr/bin/consul
-    cp -a configs/consul-server.service /etc/systemd/system/
+    cp -a configs/consul-first.service /etc/systemd/system/
     cp -a configs/consul-env /etc/consul-env
 }
 
@@ -32,14 +32,14 @@ function makeenv {
 case $1 in 
     agent)
 	makeenv
-        agent
+        follow
         ;;
     server)
         makeenv
-        server
+        first
         ;;
     *)
-        echo 'Specify server or agent as $1'
+        echo 'Specify "follow" or "first" as $1'
         ;;
 esac
 

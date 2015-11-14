@@ -1,32 +1,62 @@
 #!/bin/bash
 
+# Get some info for makeenv/registrator
+ip=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
+name=$(hostname)
+
 function follow {
     echo "Installing files"
     [ -f /usr/bin/consul ] && rm /usr/bin/consul
-    cp -a bin/consul /usr/bin/consul
+    cp -a data/consul /usr/bin/consul
     cp -a configs/consul.service /etc/systemd/system/
-    cp -a configs/consul-env /etc/consul-env
+    cp -a /tmp/consul-env /etc/consul-env
 }
 
 function first {
     echo "Installing files"
     [ -f /usr/bin/consul ] && rm /usr/bin/consul
-    cp -a bin/consul /usr/bin/consul
+    cp -a data/consul /usr/bin/consul
     cp -a configs/consul-first.service /etc/systemd/system/
-    cp -a configs/consul-env /etc/consul-env
+    cp -a /tmp/consul-env /etc/consul-env
 }
 
 function makeenv {
-    ip=$(/sbin/ifconfig eth0 | grep 'inet addr:' | cut -d: -f2 | awk '{ print $1}')
-    name=$(hostname)
     if [ "$1" = "follow" ]; then
         echo "provide a node address of an existing cluster below"
         read node
-	printf "HOST_NAME=$name \nHOST_IP=$ip \nJOIN_NODE=$node" > configs/consul-env
+	printf "HOST_NAME=$name \nHOST_IP=$ip \nJOIN_NODE=$node" > /tmp/consul-env
     else 
-        echo "Generating configs/consul-env"
-        printf "HOST_NAME=$name \nHOST_IP=$ip" > configs/consul-env 
+        echo "Generating /tmp/consul-env"
+        printf "HOST_NAME=$name \nHOST_IP=$ip" > /tmp/consul-env 
     fi
+}
+
+function registrator {
+    # Check if we can connect to local docker throgh socket (socket is required for registrator to work)
+    docker -H unix:///var/run/docker.sock ps &>/dev/null
+    if [ $? -ne 0 ]; then
+        echo "There might be problems with your docker.."
+        exit 1
+    fi
+    docker ps |grep registrator &>/dev/null
+    if [ $? -eq 0 ]; then
+        echo "There might be a registrator-container running. Please check"
+        exit 1
+    fi
+    docker -H unix:///var/run/docker.sock run --restart=always -d -v /var/run/docker.sock:/tmp/docker.sock --net=host nimblestratus/rpi-registrator consul://$ip:8500
+}
+
+function webui {
+    makeenv follow
+    echo "Installing files"
+    [ -f /usr/bin/consul ] && rm /usr/bin/consul
+    cp -a data/consul /usr/bin/consul
+    cp -a configs/consul-webui.service /etc/systemd/system/consul.servici
+    cp -a /tmp/consul-env /etc/consul-env
+    mkdir -p /srv/consul
+    unzip data/consul_0.5.2_web_ui.zip -d /srv/consul
+    mv /srv/consul/dist/* /srv/consul
+    rm -r /srv/consul/dist
 }
 
 case $1 in 
@@ -38,8 +68,10 @@ case $1 in
         makeenv
         first
         ;;
+    registrator)
+        registrator
+        ;;
     *)
         echo 'Specify "follow" or "first" as $1'
         ;;
 esac
-

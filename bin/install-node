@@ -51,8 +51,9 @@ function webui {
     echo "Installing files"
     [ -f /usr/bin/consul ] && rm /usr/bin/consul
     cp -a data/consul /usr/bin/consul
-    cp -a configs/consul-webui.service /etc/systemd/system/consul.servici
+    cp -a configs/consul-webui.service /etc/systemd/system/consul.service
     cp -a /tmp/consul-env /etc/consul-env
+    [ -d /srv/consul ] && rm -r /srv/consul
     mkdir -p /srv/consul
     unzip data/consul_0.5.2_web_ui.zip -d /srv/consul
     mv /srv/consul/dist/* /srv/consul
@@ -68,10 +69,15 @@ case $1 in
         makeenv
         first
         ;;
+    webui)
+        webui
+        ;;
     registrator)
         registrator
         ;;
     *)
-        echo 'Specify "follow" or "first" as $1'
+        echo 'Specify a valid mode as $1'
+        echo "valid modes are:"
+        echo -e "  -first\n  -follow\n  -webui\n  -registrator"
         ;;
 esac

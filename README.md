@@ -1,7 +1,7 @@
 # Consul on Hypriot
 
 This repo contains some configs and scripts to quickly setup consul nodes on a raspberry running hypriot.
-If There is a local docker you can also run a registrator container connected to the consul node.
+If there is a local docker you can also run a registrator container connected to the consul node.
 
 ---
 ## How to use
